@@ -1,0 +1,71 @@
+;
+; TestCipher.inf
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = Cipher ; TODO: specify appropriate Class
+ClassGuid   = {6d5fe0c5-8547-4099-8557-389e19786fe6} ; TODO: specify appropriate ClassGuid
+Provider    = %ManufacturerName%
+CatalogFile = TestCipher.cat
+DriverVer   = ; TODO: set DriverVer in stampinf property pages
+PnpLockdown = 1
+
+[ClassInstall32]
+Addreg=CipherClassReg
+
+[CipherClassReg]
+HKR,,,0,"Cipher"
+HKR,,Icon,,-5
+HKR,,DeviceCharacteristics,0x10001,0x100                 ;Use same security checks on relative opens
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;GA;;;LS)" ;Allow generic all access to system, built-in Admin, and Local System.
+                                                         ;This one overrides the security set by the driver
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+TestCipher.sys = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName% = Standard,NT$ARCH$.10.0...16299 ; %13% support introduced in build 16299
+
+[Standard.NT$ARCH$.10.0...16299]
+%TestCipher.DeviceDesc% = TestCipher_Device, Root\TestCipher ; TODO: edit hw-id
+
+[TestCipher_Device.NT]
+CopyFiles = File_Copy
+
+[File_Copy]
+TestCipher.sys
+
+;-------------- Service installation
+[TestCipher_Device.NT.Services]
+AddService = TestCipher,%SPSVCINST_ASSOCSERVICE%, TestCipher_Service_Inst
+
+; -------------- TestCipher driver install sections
+[TestCipher_Service_Inst]
+DisplayName    = %TestCipher.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\TestCipher.sys
+
+[TestCipher_Device.NT.Wdf]
+KmdfService = TestCipher, TestCipher_wdfsect
+
+[TestCipher_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ManufacturerName = "YUJEONG HAN" ;TODO: Replace with your manufacturer name
+DiskName = "TestCipher Installation Disk"
+TestCipher.DeviceDesc = "TestCipher Device"
+TestCipher.SVCDESC = "TestCipher Service"
